@@ -18,6 +18,13 @@ function valueLabel(token) {
   return money(token.value_usd);
 }
 
+function errorMessage(body) {
+  if (body && body.error && body.error.message) {
+    return body.error.message;
+  }
+  return 'Unable to load portfolio';
+}
+
 export default function App({ address = '0xabc123' }) {
   const [portfolio, setPortfolio] = useState(null);
   const [error, setError] = useState('');
@@ -31,7 +38,7 @@ export default function App({ address = '0xabc123' }) {
         const response = await fetch(`/api/wallets/${address}/portfolio`);
         const body = await response.json();
         if (!response.ok) {
-          throw new Error('Unable to load portfolio');
+          throw new Error(errorMessage(body));
         }
         if (!cancelled) {
           setPortfolio(body);
