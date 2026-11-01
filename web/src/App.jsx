@@ -4,6 +4,20 @@ function money(value) {
   return `$${Number(value).toFixed(2)}`;
 }
 
+function priceLabel(token) {
+  if (!token.price_available) {
+    return 'Price unavailable';
+  }
+  return money(token.price_usd);
+}
+
+function valueLabel(token) {
+  if (!token.price_available) {
+    return 'Unavailable';
+  }
+  return money(token.value_usd);
+}
+
 export default function App({ address = '0xabc123' }) {
   const [portfolio, setPortfolio] = useState(null);
   const [error, setError] = useState('');
@@ -69,8 +83,8 @@ export default function App({ address = '0xabc123' }) {
             <tr key={`${token.chain}-${token.symbol}`}>
               <td>{token.symbol}</td>
               <td>{token.amount}</td>
-              <td>{money(token.price_usd)}</td>
-              <td>{money(token.value_usd)}</td>
+              <td>{priceLabel(token)}</td>
+              <td>{valueLabel(token)}</td>
             </tr>
           ))}
         </tbody>

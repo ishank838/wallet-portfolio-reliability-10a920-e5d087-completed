@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ErrInvalidAddress       = errors.New("invalid wallet address")
+	ErrInvalidAddress      = errors.New("invalid wallet address")
 	ErrProviderUnavailable = errors.New("provider unavailable")
 )
 
