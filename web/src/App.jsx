@@ -28,12 +28,14 @@ function errorMessage(body) {
 export default function App({ address = '0xabc123' }) {
   const [portfolio, setPortfolio] = useState(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      setLoading(true);
+      setError('');
       try {
         const response = await fetch(`/api/wallets/${address}/portfolio`);
         const body = await response.json();
@@ -45,7 +47,12 @@ export default function App({ address = '0xabc123' }) {
         }
       } catch (err) {
         if (!cancelled) {
+          setPortfolio(null);
           setError(err.message);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
     }
