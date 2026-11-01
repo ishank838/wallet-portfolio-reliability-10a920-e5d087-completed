@@ -56,16 +56,8 @@ func (s *PortfolioService) Summary(ctx context.Context, address string) (models.
 			Amount: balance.Amount,
 		}
 
-		cacheKey := strings.ToUpper(balance.Symbol)
-		price, ok := s.cache.Get(cacheKey)
-		if !ok {
-			price, err = s.provider.TokenPriceUSD(context.Background(), balance.Symbol)
-			if err == nil {
-				s.cache.Set(cacheKey, price)
-			}
-		}
-
-		if err == nil {
+		price, priceErr := s.lookupPrice(ctx, balance.Symbol)
+		if priceErr == nil {
 			value := balance.Amount * price
 			holding.PriceUSD = &price
 			holding.ValueUSD = &value
@@ -76,6 +68,30 @@ func (s *PortfolioService) Summary(ctx context.Context, address string) (models.
 	}
 
 	return response, nil
+}
+
+func (s *PortfolioService) lookupPrice(ctx context.Context, symbol string) (float64, error) {
+	cacheKey := strings.ToUpper(symbol)
+	if s.cache != nil {
+		if price, ok := s.cache.Get(cacheKey); ok {
+			return price, nil
+		}
+	}
+	if s.provider == nil {
+		return 0, ErrProviderUnavailable
+	}
+
+	lookupCtx, cancel := context.WithTimeout(ctx, s.priceTimeout)
+	defer cancel()
+
+	price, err := s.provider.TokenPriceUSD(lookupCtx, symbol)
+	if err != nil {
+		return 0, err
+	}
+	if s.cache != nil {
+		s.cache.Set(cacheKey, price)
+	}
+	return price, nil
 }
 
 func looksLikeAddress(address string) bool {
